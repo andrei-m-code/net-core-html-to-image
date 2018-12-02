@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreHtmlToImage", "CoreHtmlToImage\CoreHtmlToImage.csproj", "{463C9F1F-7E99-4538-AA22-04796CDF2A94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreHtmlToImage.Console", "CoreHtmlToImage.Console\CoreHtmlToImage.Console.csproj", "{9EF827C7-2076-4F0C-BBCA-51001D26E9EC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{463C9F1F-7E99-4538-AA22-04796CDF2A94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{463C9F1F-7E99-4538-AA22-04796CDF2A94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{463C9F1F-7E99-4538-AA22-04796CDF2A94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{463C9F1F-7E99-4538-AA22-04796CDF2A94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EF827C7-2076-4F0C-BBCA-51001D26E9EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EF827C7-2076-4F0C-BBCA-51001D26E9EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EF827C7-2076-4F0C-BBCA-51001D26E9EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EF827C7-2076-4F0C-BBCA-51001D26E9EC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E50378FB-DD2E-4212-A1A6-9093E6B7C676}
+	EndGlobalSection
+EndGlobal
