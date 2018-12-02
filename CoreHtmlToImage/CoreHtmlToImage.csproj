@@ -1,14 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Title>.NET Core HTML to Image Converter</Title>
     <Description>Convert HTML string or URL to image</Description>
     <PackageProjectUrl>https://github.com/andrei-m-code/net-core-html-to-image</PackageProjectUrl>
     <RepositoryUrl>https://github.com/andrei-m-code/net-core-html-to-image</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>net-core html-to-image url-to-image</PackageTags>
+    <PackageTags>net-core html-to-image url-to-image net-standard</PackageTags>
     <PackageReleaseNotes>Initial package release</PackageReleaseNotes>
+    <Authors>andrei-m-code</Authors>
+    <Copyright>© Free for all. Screw the people who commercialize such libraries</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
