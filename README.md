@@ -22,7 +22,7 @@ File.WriteAllBytes("image.jpg", bytes);
 ```
 var converter = new HtmlConverter();
 var bytes = converter.FromUrl("http://google.com", 800, format: ImageFormat.Png, quality: 80);
-File.WriteAllBytes("image.jpg", bytes);
+File.WriteAllBytes("image.png", bytes);
 ```
 
 # Optional parameters
