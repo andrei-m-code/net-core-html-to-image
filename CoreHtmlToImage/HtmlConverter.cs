@@ -19,10 +19,11 @@ namespace CoreHtmlToImage
         /// <returns></returns>
         public byte[] FromHtmlString(string html, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
-            var htmlfile = $"{Guid.NewGuid()}.html";
-            File.WriteAllText(htmlfile, html);
-            var bytes = FromUrl(htmlfile, width, format, quality);
-            File.Delete(htmlfile);
+            var directory = AppContext.BaseDirectory;
+            var filename = Path.Combine(directory, $"{Guid.NewGuid()}.html");
+            File.WriteAllText(filename, html);
+            var bytes = FromUrl(filename, width, format, quality);
+            File.Delete(filename);
             return bytes;
         }
 
@@ -38,8 +39,9 @@ namespace CoreHtmlToImage
         {
             var directory = AppContext.BaseDirectory;
             var imageFormat = format.ToString().ToLower();
-            var filename = $"{Guid.NewGuid().ToString()}.{imageFormat}";
-            Process process = Process.Start(new ProcessStartInfo("wkhtmltoimage.exe", $"--quality {quality} --width {width} -f {imageFormat} {url} {filename}")
+            var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
+            var toolpath = Path.Combine(directory, "wkhtmltoimage.exe");
+            Process process = Process.Start(new ProcessStartInfo(toolpath, $"--quality {quality} --width {width} -f {imageFormat} {url} {filename}")
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true,
@@ -48,7 +50,7 @@ namespace CoreHtmlToImage
                 RedirectStandardError = true
             });
 
-            process.ErrorDataReceived += Process_ErrorDataReceived; 
+            process.ErrorDataReceived += Process_ErrorDataReceived;
             process.WaitForExit();
 
             if (File.Exists(filename))
