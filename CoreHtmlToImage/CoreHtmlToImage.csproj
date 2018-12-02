@@ -12,7 +12,7 @@
     <PackageReleaseNotes>Initial package release</PackageReleaseNotes>
     <Authors>andrei-m-code</Authors>
     <Copyright>© Free for all. Screw the people who commercialize such libraries</Copyright>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <Content Include="wkhtmltoimage.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInPackage>true</IncludeInPackage>
     </Content>
   </ItemGroup>
 
