@@ -1,3 +1,5 @@
+[![NuGet](https://img.shields.io/nuget/v/CoreHtmlToImage.svg)](https://www.nuget.org/packages/CoreHtmlToImage/)
+
 # .NET Core HTML to Image converter
 
 This is a .NET Core HTML to Image converter. It helps converting HTML strings or URLs to image bytes. Please see the examples:
