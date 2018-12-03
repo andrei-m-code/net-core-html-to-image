@@ -12,7 +12,7 @@
     <PackageReleaseNotes>Initial package release</PackageReleaseNotes>
     <Authors>andrei-m-code</Authors>
     <Copyright>© Free for all. Screw the people who commercialize such libraries</Copyright>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
   </PropertyGroup>
 
   <ItemGroup>

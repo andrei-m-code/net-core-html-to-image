@@ -16,16 +16,17 @@ namespace CoreHtmlToImage
 
         static HtmlConverter()
         {
-            var type = typeof(HtmlConverter);
-            var ns = type.Namespace;
-            var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
-            directory = Directory.GetParent(assembly.Location).FullName;
+            directory = AppContext.BaseDirectory;
             toolFilepath = Path.Combine(directory, toolFilename);
 
-            if (!File.Exists(toolFilename))
+            if (!File.Exists(toolFilepath))
             {
+                var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
+                var type = typeof(HtmlConverter);
+                var ns = type.Namespace;
+
                 using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{toolFilename}"))
-                using (var fileStream = File.OpenWrite(toolFilename))
+                using (var fileStream = File.OpenWrite(toolFilepath))
                 {
                     resourceStream.CopyTo(fileStream);
                 }
