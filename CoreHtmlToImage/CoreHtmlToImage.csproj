@@ -16,10 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="wkhtmltoimage.exe" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="wkhtmltoimage.exe">
       <IncludeInPackage>true</IncludeInPackage>
     </EmbeddedResource>
