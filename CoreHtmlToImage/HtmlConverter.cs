@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 namespace CoreHtmlToImage
 {
@@ -9,6 +10,26 @@ namespace CoreHtmlToImage
     /// </summary>
     public class HtmlConverter
     {
+        private const string toolFilename = "wkhtmltoimage.exe";
+        private static readonly string directory = AppContext.BaseDirectory;
+        private static readonly string toolFilepath = Path.Combine(directory, toolFilename);
+
+        static HtmlConverter()
+        {
+            if (!File.Exists(toolFilename))
+            {
+                var type = typeof(HtmlConverter);
+                var ns = type.Namespace;
+                var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
+
+                using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{toolFilename}"))
+                using (var fileStream = File.OpenWrite(toolFilename))
+                {
+                    resourceStream.CopyTo(fileStream);
+                }
+            }
+        }
+
         /// <summary>
         /// Converts HTML string to image
         /// </summary>
@@ -19,7 +40,6 @@ namespace CoreHtmlToImage
         /// <returns></returns>
         public byte[] FromHtmlString(string html, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
-            var directory = AppContext.BaseDirectory;
             var filename = Path.Combine(directory, $"{Guid.NewGuid()}.html");
             File.WriteAllText(filename, html);
             var bytes = FromUrl(filename, width, format, quality);
@@ -37,11 +57,10 @@ namespace CoreHtmlToImage
         /// <returns></returns>
         public byte[] FromUrl(string url, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
-            var directory = AppContext.BaseDirectory;
             var imageFormat = format.ToString().ToLower();
             var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
-            var toolpath = Path.Combine(directory, "wkhtmltoimage.exe");
-            Process process = Process.Start(new ProcessStartInfo(toolpath, $"--quality {quality} --width {width} -f {imageFormat} {url} {filename}")
+
+            Process process = Process.Start(new ProcessStartInfo(toolFilepath, $"--quality {quality} --width {width} -f {imageFormat} {url} {filename}")
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true,

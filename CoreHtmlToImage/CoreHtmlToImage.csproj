@@ -12,7 +12,7 @@
     <PackageReleaseNotes>Initial package release</PackageReleaseNotes>
     <Authors>andrei-m-code</Authors>
     <Copyright>© Free for all. Screw the people who commercialize such libraries</Copyright>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,9 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="wkhtmltoimage.exe">
+    <EmbeddedResource Include="wkhtmltoimage.exe">
       <IncludeInPackage>true</IncludeInPackage>
-    </Content>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
