@@ -1,4 +1,3 @@
-[![NuGet](https://img.shields.io/nuget/v/CoreHtmlToImage.svg)](https://www.nuget.org/packages/CoreHtmlToImage/)
 
 # .NET Core HTML to Image converter
 
