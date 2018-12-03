@@ -21,7 +21,7 @@ File.WriteAllBytes("image.jpg", bytes);
 # Convert URL to image bytes
 ```
 var converter = new HtmlConverter();
-var bytes = converter.FromUrl("http://google.com", 800, format: ImageFormat.Png, quality: 80);
+var bytes = converter.FromUrl("http://google.com");
 File.WriteAllBytes("image.png", bytes);
 ```
 
