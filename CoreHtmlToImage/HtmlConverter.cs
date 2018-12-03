@@ -11,17 +11,19 @@ namespace CoreHtmlToImage
     public class HtmlConverter
     {
         private const string toolFilename = "wkhtmltoimage.exe";
-        private static readonly string directory = AppContext.BaseDirectory;
-        private static readonly string toolFilepath = Path.Combine(directory, toolFilename);
+        private static readonly string directory;
+        private static readonly string toolFilepath;
 
         static HtmlConverter()
         {
+            var type = typeof(HtmlConverter);
+            var ns = type.Namespace;
+            var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
+            directory = Directory.GetParent(assembly.Location).FullName;
+            toolFilepath = Path.Combine(directory, toolFilename);
+
             if (!File.Exists(toolFilename))
             {
-                var type = typeof(HtmlConverter);
-                var ns = type.Namespace;
-                var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
-
                 using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{toolFilename}"))
                 using (var fileStream = File.OpenWrite(toolFilename))
                 {
