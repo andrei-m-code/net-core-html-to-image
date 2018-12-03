@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/andrei-m-code/CoreHtmlToImage.svg?branch=master)](https://travis-ci.org/andrei-m-code/CoreHtmlToImage) [![NuGet](https://img.shields.io/nuget/v/CoreHtmlToImage.svg)](https://www.nuget.org/packages/CoreHtmlToImage/)
 
 # .NET Core HTML to Image converter
 
