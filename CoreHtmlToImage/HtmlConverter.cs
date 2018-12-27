@@ -12,7 +12,7 @@ namespace CoreHtmlToImage
     public class HtmlConverter
     {
         private const string winToolFileName = "wkhtmltoimage.exe";
-        private const string linuxToolFileName = "/usr/local/bin/wkhtmltoimage";
+        private const string linuxToolFileName = "wkhtmltoimage";
         private static  readonly string directory;
         private static readonly string toolFilepath;
 
@@ -27,7 +27,9 @@ namespace CoreHtmlToImage
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 directory = AppContext.BaseDirectory;
+                Console.WriteLine($"directory------>{directory}");
                 toolFilepath = Path.Combine(directory, linuxToolFileName);
+                Console.WriteLine($"toolFilepath------>{toolFilepath}");
                 CopyFile(linuxToolFileName);
             }
 
@@ -38,6 +40,7 @@ namespace CoreHtmlToImage
         {
             if (!File.Exists(toolFilepath))
             {
+                Console.WriteLine($"CopyFile ing----->");
                 var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
                 var type = typeof(HtmlConverter);
                 var ns = type.Namespace;
