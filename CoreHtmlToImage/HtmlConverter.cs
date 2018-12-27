@@ -21,7 +21,7 @@ namespace CoreHtmlToImage
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 directory = AppContext.BaseDirectory;
-                toolFilepath = directory;
+                toolFilepath = Path.Combine(directory, winToolFileName);
                 CopyFile(winToolFileName);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
