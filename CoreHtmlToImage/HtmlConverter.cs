@@ -12,7 +12,7 @@ namespace CoreHtmlToImage
     public class HtmlConverter
     {
         private const string winToolFileName = "wkhtmltoimage.exe";
-        private const string linuxToolFileName = "/usr/loacal/bin/wkhtmltoimage";
+        private const string linuxToolFileName = "wkhtmltoimage";
         private static  readonly string directory;
         private static readonly string toolFilepath;
 
