@@ -12,7 +12,7 @@ namespace CoreHtmlToImage
     public class HtmlConverter
     {
         private const string winToolFileName = "wkhtmltoimage.exe";
-        private const string linuxToolFileName = "wkhtmltoimage";
+        private const string linuxToolFileName = "/usr/local/bin/wkhtmltoimage";
         private static  readonly string directory;
         private static readonly string toolFilepath;
 
@@ -21,16 +21,13 @@ namespace CoreHtmlToImage
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 directory = AppContext.BaseDirectory;
-                toolFilepath = Path.Combine(directory, winToolFileName);
+                toolFilepath = directory;
                 CopyFile(winToolFileName);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 directory = AppContext.BaseDirectory;
-                Console.WriteLine($"directory------>{directory}");
-                toolFilepath = Path.Combine(directory, linuxToolFileName);
-                Console.WriteLine($"toolFilepath------>{toolFilepath}");
-                CopyFile(linuxToolFileName);
+                toolFilepath = linuxToolFileName;
             }
 
 
@@ -40,14 +37,13 @@ namespace CoreHtmlToImage
         {
             if (!File.Exists(toolFilepath))
             {
-                Console.WriteLine($"CopyFile ing----->");
                 var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
                 var type = typeof(HtmlConverter);
                 var ns = type.Namespace;
-
                 using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{toolFilename}"))
                 using (var fileStream = File.OpenWrite(toolFilepath))
                 {
+
                     resourceStream.CopyTo(fileStream);
                 }
             }
@@ -83,7 +79,7 @@ namespace CoreHtmlToImage
         {
             var imageFormat = format.ToString().ToLower();
             var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
-
+            Console.WriteLine($"文件路径为---------------->{toolFilepath}");
             Process process = Process.Start(new ProcessStartInfo(toolFilepath, $"--quality {quality} --width {width} -f {imageFormat} {url} {filename}")
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
