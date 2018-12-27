@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace CoreHtmlToImage
 {
@@ -10,15 +11,31 @@ namespace CoreHtmlToImage
     /// </summary>
     public class HtmlConverter
     {
-        private const string toolFilename = "wkhtmltoimage.exe";
-        private static readonly string directory;
+        private const string winToolFileName = "wkhtmltoimage.exe";
+        private const string linuxToolFileName = "/usr/local/bin/wkhtmltoimage";
+        private static  readonly string directory;
         private static readonly string toolFilepath;
 
         static HtmlConverter()
         {
-            directory = AppContext.BaseDirectory;
-            toolFilepath = Path.Combine(directory, toolFilename);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                directory = AppContext.BaseDirectory;
+                toolFilepath = Path.Combine(directory, winToolFileName);
+                CopyFile(winToolFileName);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                directory = AppContext.BaseDirectory;
+                toolFilepath = Path.Combine(directory, linuxToolFileName);
+                CopyFile(linuxToolFileName);
+            }
 
+
+        }
+
+        static void CopyFile(string toolFilename)
+        {
             if (!File.Exists(toolFilepath))
             {
                 var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
@@ -32,6 +49,7 @@ namespace CoreHtmlToImage
                 }
             }
         }
+        
 
         /// <summary>
         /// Converts HTML string to image

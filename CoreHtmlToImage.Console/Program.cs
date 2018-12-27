@@ -12,8 +12,8 @@ namespace CoreHtmlToImage.Console
             var htmlBytes = converter.FromHtmlString(html);
 
             // From URL
-            var urlBytes = converter.FromUrl("http://google.com", 800, format: ImageFormat.Png, quality: 90);
-            File.WriteAllBytes("D:\\image.png", urlBytes);
+            var urlBytes = converter.FromUrl("http://www.baidu.com", 800, format: ImageFormat.Png, quality: 90);
+            File.WriteAllBytes("image.png", urlBytes);
         }
     }
 }
