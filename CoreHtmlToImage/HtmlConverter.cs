@@ -79,7 +79,6 @@ namespace CoreHtmlToImage
         {
             var imageFormat = format.ToString().ToLower();
             var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
-            Console.WriteLine($"文件路径为---------------->{toolFilepath}");
             Process process = Process.Start(new ProcessStartInfo(toolFilepath, $"--quality {quality} --width {width} -f {imageFormat} {url} {filename}")
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
