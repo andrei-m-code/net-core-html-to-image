@@ -4,7 +4,7 @@
 
 This is a .NET Core HTML to Image converter. It helps converting HTML strings or URLs to image bytes. Please see the examples:
 
-## Installation
+## Installation Instructions
 Nuget package available (https://www.nuget.org/packages/CoreHtmlToImage/)
 ```
 Install-Package CoreHtmlToImage
