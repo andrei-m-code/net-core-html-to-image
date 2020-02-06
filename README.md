@@ -31,7 +31,7 @@ File.WriteAllBytes("image.jpg", bytes);
 3. quality - output image quality from 1 to 100. Default is 100.
 
 ## Roadmap
-* Async interface
+* Async methods
 * Non-Windows support
 
 ## More about this library
