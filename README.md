@@ -9,7 +9,10 @@ Nuget package available (https://www.nuget.org/packages/CoreHtmlToImage/)
 ```
 Install-Package CoreHtmlToImage
 ```
-
+dotnet cli:
+```
+dotnet add package CoreHtmlToImage
+```
 ## Convert HTML string to image bytes
 ```
 var converter = new HtmlConverter();
