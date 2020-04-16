@@ -10,26 +10,62 @@ namespace CoreHtmlToImage
     /// </summary>
     public class HtmlConverter
     {
-        private const string toolFilename = "wkhtmltoimage.exe";
-        private static readonly string directory;
-        private static readonly string toolFilepath;
+        private static string toolFilename = "wkhtmltoimage";
+        private static string directory;
+        private static string toolFilepath;
 
         static HtmlConverter()
         {
             directory = AppContext.BaseDirectory;
-            toolFilepath = Path.Combine(directory, toolFilename);
 
-            if (!File.Exists(toolFilepath))
+            //Check on what platform we are
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
             {
-                var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
-                var type = typeof(HtmlConverter);
-                var ns = type.Namespace;
+                toolFilepath = Path.Combine(directory, toolFilename + ".exe");
 
-                using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{toolFilename}"))
-                using (var fileStream = File.OpenWrite(toolFilepath))
+                if (!File.Exists(toolFilepath))
                 {
-                    resourceStream.CopyTo(fileStream);
+                    var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
+                    var type = typeof(HtmlConverter);
+                    var ns = type.Namespace;
+
+                    using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{toolFilename}.exe"))
+                    using (var fileStream = File.OpenWrite(toolFilepath))
+                    {
+                        resourceStream.CopyTo(fileStream);
+                    }
                 }
+            }
+            else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+            {
+                //Check if wkhtmltoimage package is installed on this distro in using which command
+                Process process = Process.Start(new ProcessStartInfo()
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = "/bin/",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    FileName = "/bin/bash",
+                    Arguments = "which wkhtmltoimage"
+
+                });
+                string answer = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(answer) && answer.Contains("wkhtmltoimage"))
+                {
+                    toolFilepath = "wkhtmltoimage";
+                }
+                else
+                {
+                    throw new Exception("wkhtmltoimage does not appear to be installed on this linux system according to which command; go to https://wkhtmltopdf.org/downloads.html");
+                }
+            }
+            else
+            {
+                //OSX not implemented
+                throw new Exception("OSX Platform not implemented yet");
             }
         }
 
