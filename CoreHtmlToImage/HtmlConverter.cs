@@ -99,7 +99,18 @@ namespace CoreHtmlToImage
             var imageFormat = format.ToString().ToLower();
             var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
 
-            Process process = Process.Start(new ProcessStartInfo(toolFilepath, $"--quality {quality} --width {width} -f {imageFormat} {url} {filename}")
+            string args;
+
+            if (IsLocalPath(url))
+            {
+                args = $"--quality {quality} --width {width} -f {imageFormat} \"{url}\" \"{filename}\"";
+            }
+            else
+            {
+                args = $"--quality {quality} --width {width} -f {imageFormat} {url} \"{filename}\"";
+            }
+
+            Process process = Process.Start(new ProcessStartInfo(toolFilepath, args)
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true,
@@ -119,6 +130,16 @@ namespace CoreHtmlToImage
             }
 
             throw new Exception("Something went wrong. Please check input parameters");
+        }
+
+        private static bool IsLocalPath(string path)
+        {
+            if (path.StartsWith("http"))
+            {
+                return false;
+            }
+
+            return new Uri(path).IsFile;
         }
 
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
