@@ -12,8 +12,8 @@
     <PackageReleaseNotes>Linux support added</PackageReleaseNotes>
     <Authors>andrei-m-code</Authors>
     <Copyright>© Free for all. Screw the people who commercialize such libraries</Copyright>
-    <Version>1.0.7</Version>
-    <PackageVersion>1.0.7</PackageVersion>
+    <Version>1.0.6</Version>
+    <PackageVersion>1.0.6</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
