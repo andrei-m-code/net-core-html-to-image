@@ -14,6 +14,8 @@ namespace CoreHtmlToImage
         private static string directory;
         private static string toolFilepath;
 
+        public string ExtraArgs = String.Empty;
+
         static HtmlConverter()
         {
             directory = AppContext.BaseDirectory;
@@ -109,6 +111,8 @@ namespace CoreHtmlToImage
             {
                 args = $"--quality {quality} --width {width} -f {imageFormat} {url} \"{filename}\"";
             }
+
+            args = string.Join(" ", ExtraArgs, args);
 
             Process process = Process.Start(new ProcessStartInfo(toolFilepath, args)
             {
