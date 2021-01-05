@@ -77,11 +77,11 @@ namespace CoreHtmlToImage
         /// <param name="format">Output image format</param>
         /// <param name="quality">Output image quality 1-100</param>
         /// <returns></returns>
-        public byte[] FromHtmlString(string html, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+        public virtual byte[] FromHtmlString(string html, int width = 1024, int height = 0, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
             var filename = Path.Combine(directory, $"{Guid.NewGuid()}.html");
             File.WriteAllText(filename, html);
-            var bytes = FromUrl(filename, width, format, quality);
+            var bytes = FromUrl(filename, width, height, format, quality);
             File.Delete(filename);
             return bytes;
         }
@@ -91,24 +91,16 @@ namespace CoreHtmlToImage
         /// </summary>
         /// <param name="url">Valid http(s):// URL</param>
         /// <param name="width">Output document width</param>
+        /// <param name="height">Output document height</param>
         /// <param name="format">Output image format</param>
         /// <param name="quality">Output image quality 1-100</param>
         /// <returns></returns>
-        public byte[] FromUrl(string url, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+        public virtual byte[] FromUrl(string url, int width = 1024, int height = 0, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
             var imageFormat = format.ToString().ToLower();
             var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
 
-            string args;
-
-            if (IsLocalPath(url))
-            {
-                args = $"--quality {quality} --width {width} -f {imageFormat} \"{url}\" \"{filename}\"";
-            }
-            else
-            {
-                args = $"--quality {quality} --width {width} -f {imageFormat} {url} \"{filename}\"";
-            }
+            string args = GetArgs(url, width, height, quality, imageFormat, filename);            
 
             Process process = Process.Start(new ProcessStartInfo(toolFilepath, args)
             {
@@ -130,6 +122,19 @@ namespace CoreHtmlToImage
             }
 
             throw new Exception("Something went wrong. Please check input parameters");
+        }
+
+        protected virtual string GetArgs(string url, int width, int height, int quality, string imageFormat, string filename)
+        {
+
+            if (IsLocalPath(url))
+            {
+                return $"--quality {quality} --width {width} --height {height} -f {imageFormat} \"{url}\" \"{filename}\"";
+            }
+            else
+            {
+                return $"--quality {quality} --width {width} --height {height} -f {imageFormat} {url} \"{filename}\"";
+            }
         }
 
         private static bool IsLocalPath(string path)
