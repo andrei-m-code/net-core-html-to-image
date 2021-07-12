@@ -44,11 +44,11 @@ namespace CoreHtmlToImage
                 {
                     CreateNoWindow = true,
                     UseShellExecute = false,
-                    WorkingDirectory = "/bin/",
+                    WorkingDirectory = "/usr/local/bin",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    FileName = "/bin/bash",
-                    Arguments = "which wkhtmltoimage"
+                    FileName = "which",
+                    Arguments = "wkhtmltoimage"
 
                 });
                 string answer = process.StandardOutput.ReadToEnd();
