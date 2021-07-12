@@ -38,7 +38,7 @@ namespace CoreHtmlToImage
             }
             else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
             {
-                //Check if wkhtmltoimage package is installed on this distro in using which command
+                //Check if wkhtmltoimage package is installed in using which command
                 Process process = Process.Start(new ProcessStartInfo()
                 {
                     CreateNoWindow = true,
@@ -65,7 +65,29 @@ namespace CoreHtmlToImage
             else
             {
                 //OSX not implemented
-                throw new Exception("OSX Platform not implemented yet");
+                //Check if wkhtmltoimage package is installed on this distro in using which command
+                Process process = Process.Start(new ProcessStartInfo()
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = "/usr/local/bin",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    FileName = "which",
+                    Arguments = "wkhtmltoimage"
+
+                });
+                string answer = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(answer) && answer.Contains("wkhtmltoimage"))
+                {
+                    toolFilepath = "wkhtmltoimage";
+                }
+                else
+                {
+                    throw new Exception("wkhtmltoimage does not appear to be installed on MacOS according to which command; go to https://wkhtmltopdf.org/downloads.html");
+                }
             }
         }
 
