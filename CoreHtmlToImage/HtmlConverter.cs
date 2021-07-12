@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace CoreHtmlToImage
 {
@@ -38,16 +39,16 @@ namespace CoreHtmlToImage
             }
             else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
             {
-                //Check if wkhtmltoimage package is installed on this distro in using which command
+                //Check if wkhtmltoimage package is installed in using which command
                 Process process = Process.Start(new ProcessStartInfo()
                 {
                     CreateNoWindow = true,
                     UseShellExecute = false,
-                    WorkingDirectory = "/bin/",
+                    WorkingDirectory = "/usr/local/bin",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    FileName = "/bin/bash",
-                    Arguments = "which wkhtmltoimage"
+                    FileName = "which",
+                    Arguments = "wkhtmltoimage"
 
                 });
                 string answer = process.StandardOutput.ReadToEnd();
@@ -65,7 +66,29 @@ namespace CoreHtmlToImage
             else
             {
                 //OSX not implemented
-                throw new Exception("OSX Platform not implemented yet");
+                //Check if wkhtmltoimage package is installed on this distro in using which command
+                Process process = Process.Start(new ProcessStartInfo()
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = "/usr/local/bin",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    FileName = "which",
+                    Arguments = "wkhtmltoimage"
+
+                });
+                string answer = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(answer) && answer.Contains("wkhtmltoimage"))
+                {
+                    toolFilepath = "wkhtmltoimage";
+                }
+                else
+                {
+                    throw new Exception("wkhtmltoimage does not appear to be installed on MacOS according to which command; go to https://wkhtmltopdf.org/downloads.html");
+                }
             }
         }
 
@@ -73,14 +96,19 @@ namespace CoreHtmlToImage
         /// Converts HTML string to image
         /// </summary>
         /// <param name="html">HTML string</param>
+        /// <param name="encoding">string encoding</param>
         /// <param name="width">Output document width</param>
         /// <param name="format">Output image format</param>
         /// <param name="quality">Output image quality 1-100</param>
         /// <returns></returns>
-        public byte[] FromHtmlString(string html, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+        public byte[] FromHtmlString(string html,Encoding encoding=null, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
+            if (null == encoding)
+            {
+                encoding=Encoding.Default;
+            }
             var filename = Path.Combine(directory, $"{Guid.NewGuid()}.html");
-            File.WriteAllText(filename, html);
+            File.WriteAllText(filename, html,encoding);
             var bytes = FromUrl(filename, width, format, quality);
             File.Delete(filename);
             return bytes;
