@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace CoreHtmlToImage
 {
@@ -95,14 +96,19 @@ namespace CoreHtmlToImage
         /// Converts HTML string to image
         /// </summary>
         /// <param name="html">HTML string</param>
+        /// <param name="encoding">string encoding</param>
         /// <param name="width">Output document width</param>
         /// <param name="format">Output image format</param>
         /// <param name="quality">Output image quality 1-100</param>
         /// <returns></returns>
-        public byte[] FromHtmlString(string html, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+        public byte[] FromHtmlString(string html,Encoding encoding=null, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
         {
+            if (null == encoding)
+            {
+                encoding=Encoding.Default;
+            }
             var filename = Path.Combine(directory, $"{Guid.NewGuid()}.html");
-            File.WriteAllText(filename, html);
+            File.WriteAllText(filename, html,encoding);
             var bytes = FromUrl(filename, width, format, quality);
             File.Delete(filename);
             return bytes;
