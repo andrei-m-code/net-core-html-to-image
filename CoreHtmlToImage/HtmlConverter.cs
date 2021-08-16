@@ -101,7 +101,7 @@ namespace CoreHtmlToImage
         /// <param name="format">Output image format</param>
         /// <param name="quality">Output image quality 1-100</param>
         /// <returns></returns>
-        public byte[] FromHtmlString(string html,Encoding encoding=null, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+        public byte[] FromHtmlString(string html,Encoding encoding=null, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100,string extraParas="")
         {
             if (null == encoding)
             {
@@ -122,7 +122,7 @@ namespace CoreHtmlToImage
         /// <param name="format">Output image format</param>
         /// <param name="quality">Output image quality 1-100</param>
         /// <returns></returns>
-        public byte[] FromUrl(string url, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+        public byte[] FromUrl(string url, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100,string extraParas="")
         {
             var imageFormat = format.ToString().ToLower();
             var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
@@ -131,17 +131,17 @@ namespace CoreHtmlToImage
 
             if (IsLocalPath(url))
             {
-                args = $"--quality {quality} --width {width} -f {imageFormat} \"{url}\" \"{filename}\"";
+                args = $"{extraParas} --quality {quality} --width {width} -f {imageFormat} \"{url}\" \"{filename}\"";
             }
             else
             {
-                args = $"--quality {quality} --width {width} -f {imageFormat} {url} \"{filename}\"";
+                args = $"{extraParas} --quality {quality} --width {width} -f {imageFormat} {url} \"{filename}\"";
             }
 
             Process process = Process.Start(new ProcessStartInfo(toolFilepath, args)
             {
-                WindowStyle = ProcessWindowStyle.Hidden,
-                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Normal,
+                CreateNoWindow = false,
                 UseShellExecute = false,
                 WorkingDirectory = directory,
                 RedirectStandardError = true
