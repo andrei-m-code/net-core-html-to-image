@@ -76,7 +76,12 @@ namespace CoreHtmlToImage
         /// <param name="width">Output document width</param>
         /// <param name="format">Output image format</param>
         /// <param name="quality">Output image quality 1-100</param>
-        /// <returns></returns>
+        /// <param name="options">
+        /// Additional options for CLI executable args with default option <c>--encoding utf-8</c>.
+        /// </param>
+        /// <returns>
+        /// A byte array of an image.
+        /// </returns>
         public byte[] FromHtmlString(string html, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100,
             string options = "--encoding utf-8")
         {
@@ -94,7 +99,12 @@ namespace CoreHtmlToImage
         /// <param name="width">Output document width</param>
         /// <param name="format">Output image format</param>
         /// <param name="quality">Output image quality 1-100</param>
-        /// <returns></returns>
+        /// <param name="options">
+        /// Additional options for CLI executable args with default option <c>--encoding utf-8</c>.
+        /// </param>
+        /// <returns>
+        /// A byte array of an image.
+        /// </returns>
         public byte[] FromUrl(string url, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100,
             string options = "--encoding utf-8")
         {
