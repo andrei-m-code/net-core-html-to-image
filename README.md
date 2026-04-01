@@ -6,6 +6,7 @@ Cross-platform .NET library that converts HTML strings or URLs to image bytes us
 
 ## Installation
 
+NuGet Package Manager:
 ```
 Install-Package CoreHtmlToImage
 ```
@@ -15,66 +16,162 @@ dotnet CLI:
 dotnet add package CoreHtmlToImage
 ```
 
-> **Note:** On first use, PuppeteerSharp automatically downloads a compatible Chromium binary (~200MB, cached for subsequent runs).
+**Requirements:**
+- .NET 10.0 or later
+- On first use, PuppeteerSharp automatically downloads a compatible Chromium binary (~200MB, cached for subsequent runs)
 
-## Usage
-
-### Async API (recommended)
+## Quick Start
 
 ```csharp
 await using var converter = new HtmlConverter();
 
-// From HTML string
+// Convert HTML string to image
 var bytes = await converter.FromHtmlStringAsync("<div><strong>Hello</strong> World!</div>");
-File.WriteAllBytes("image.jpg", bytes);
-
-// From URL
-var bytes = await converter.FromUrlAsync("https://example.com");
 File.WriteAllBytes("image.jpg", bytes);
 ```
 
-### Options
+## Usage
+
+### Convert HTML String to Image
 
 ```csharp
+await using var converter = new HtmlConverter();
+
+var html = @"
+<html>
+<body>
+    <h1>Hello World</h1>
+    <p>This is rendered with headless Chromium.</p>
+</body>
+</html>";
+
+var bytes = await converter.FromHtmlStringAsync(html);
+File.WriteAllBytes("output.jpg", bytes);
+```
+
+### Convert URL to Image
+
+```csharp
+await using var converter = new HtmlConverter();
+
+var bytes = await converter.FromUrlAsync("https://example.com");
+File.WriteAllBytes("screenshot.jpg", bytes);
+```
+
+### Using Options
+
+All conversion options are configured via `HtmlConverterOptions`:
+
+```csharp
+await using var converter = new HtmlConverter();
+
 var options = new HtmlConverterOptions
 {
-    Width = 800,           // Viewport width (default: 1024)
-    Height = 600,          // Viewport height (default: auto)
-    Format = ImageFormat.Png,  // Jpg, Png, or WebP (default: Jpg)
-    Quality = 90,          // 1-100, for Jpg/WebP (default: 100)
-    FullPage = true,       // Capture full scrollable page (default: false)
-    OmitBackground = true  // Transparent background for PNG/WebP (default: false)
+    Width = 800,                  // Viewport width in pixels (default: 1024)
+    Height = 600,                 // Viewport height in pixels (default: auto)
+    Format = ImageFormat.Png,     // Jpg, Png, or WebP (default: Jpg)
+    Quality = 90,                 // 1-100, applies to Jpg only (default: 100)
+    FullPage = true,              // Capture full scrollable page (default: false)
+    OmitBackground = true,        // Transparent background for PNG/WebP (default: false)
+    NavigationTimeout = 60000     // Navigation timeout in ms (default: 30000, 0 = no timeout)
 };
 
 var bytes = await converter.FromHtmlStringAsync(html, options);
 ```
 
-### Sync API (backward-compatible)
+### Options Reference
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `Width` | `int` | `1024` | Viewport width in pixels |
+| `Height` | `int?` | `null` (auto) | Viewport height in pixels. When null, height is determined automatically |
+| `Format` | `ImageFormat` | `Jpg` | Output format: `Jpg`, `Png`, or `WebP` |
+| `Quality` | `int` | `100` | Image quality from 1 to 100. Applies to Jpg only |
+| `FullPage` | `bool` | `false` | When true, captures the full scrollable page instead of just the viewport |
+| `OmitBackground` | `bool` | `false` | When true, hides the default white background for transparent PNG/WebP output |
+| `NavigationTimeout` | `int` | `30000` | Maximum time in milliseconds to wait for page navigation. Set to 0 for no timeout |
+
+### Cancellation Support
+
+Async methods accept a `CancellationToken`:
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+var bytes = await converter.FromUrlAsync("https://example.com", options, cts.Token);
+```
+
+### Sync API (backward-compatible with v1.x)
+
+The synchronous API from v1.x is still available with the same method signatures:
 
 ```csharp
 var converter = new HtmlConverter();
-var bytes = converter.FromHtmlString(html);
+
+// Same signatures as v1.x
+var bytes = converter.FromHtmlString("<p>Hello</p>");
 var bytes = converter.FromUrl("https://example.com", width: 800, format: ImageFormat.Png, quality: 90);
+```
+
+> **Note:** The async API is recommended for new code. The sync methods block the calling thread while waiting for Chromium.
+
+### Disposal
+
+`HtmlConverter` manages a headless Chromium browser process internally. Always dispose it when done:
+
+```csharp
+// Async (preferred)
+await using var converter = new HtmlConverter();
+
+// Sync
+using var converter = new HtmlConverter();
+```
+
+The browser instance is reused across multiple conversions for performance. A single `HtmlConverter` instance is safe to use from multiple threads concurrently.
+
+### Error Handling
+
+Conversion errors throw `HtmlConversionException`:
+
+```csharp
+try
+{
+    var bytes = await converter.FromUrlAsync("https://invalid-url-example.test");
+}
+catch (HtmlConversionException ex)
+{
+    Console.WriteLine($"Conversion failed: {ex.Message}");
+    // ex.InnerException contains the underlying PuppeteerSharp exception
+}
 ```
 
 ## Migrating from v1.x
 
-v2.0 replaces wkhtmltoimage with headless Chromium. Key changes:
+v2.0 replaces the abandoned wkhtmltoimage engine with headless Chromium via PuppeteerSharp.
 
-- **`HtmlConverter` now implements `IAsyncDisposable`/`IDisposable`** — use `await using` or `using` for proper cleanup
-- **New async methods** — `FromHtmlStringAsync` and `FromUrlAsync` are the primary API
-- **Sync methods still work** with the same signatures as v1.x
-- **New `ImageFormat.WebP`** format option
-- **macOS is now supported**
-- **No more embedded exe** — Chromium is downloaded automatically on first use
-- **Requires .NET 10.0+** (v1.x targeted .NET Standard 2.0)
+**What changed:**
 
-## MIT License
+| | v1.x | v2.0 |
+|---|---|---|
+| Rendering engine | wkhtmltoimage (QtWebKit) | Chromium (PuppeteerSharp) |
+| Target framework | .NET Standard 2.0 | .NET 10.0 |
+| Primary API | Sync only | Async (sync wrappers available) |
+| Image formats | Jpg, Png | Jpg, Png, WebP |
+| Platform support | Windows, Linux | Windows, Linux, macOS |
+| Package size | ~41MB (embedded exe) | ~100KB (Chromium downloaded on first use) |
+| Disposal | Not required | `IAsyncDisposable` / `IDisposable` |
+| Error type | `System.Exception` | `HtmlConversionException` |
 
-Copyright (c) 2020 Andrei M
+**Source-compatible changes** (existing code compiles without modification):
+- `new HtmlConverter()` still works
+- `FromHtmlString()` and `FromUrl()` keep the same signatures and defaults
+- `ImageFormat.Jpg` and `ImageFormat.Png` enum values unchanged
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+**Behavioral changes:**
+- First call downloads Chromium (~200MB, cached after that)
+- Rendering uses Chromium instead of QtWebKit (minor visual differences, generally better CSS/JS support)
+- `HtmlConverter` should be disposed to clean up the browser process
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+## License
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+MIT License - see [LICENSE.md](LICENSE.md) for details.
