@@ -1,11 +1,11 @@
-﻿namespace CoreHtmlToImage
+namespace CoreHtmlToImage;
+
+/// <summary>
+/// Output image format.
+/// </summary>
+public enum ImageFormat
 {
-    /// <summary>
-    /// Output image format
-    /// </summary>
-    public enum ImageFormat
-    {
-        Jpg,
-        Png
-    }
+    Jpg,
+    Png,
+    WebP
 }

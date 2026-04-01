@@ -1,19 +1,27 @@
-﻿using System.IO;
+﻿using CoreHtmlToImage;
 
-namespace CoreHtmlToImage.Console
+await using var converter = new HtmlConverter();
+
+// From HTML string (async)
+var html = "<div><strong>Hello</strong> World!</div>";
+var htmlBytes = await converter.FromHtmlStringAsync(html);
+File.WriteAllBytes("hello.jpg", htmlBytes);
+Console.WriteLine("Saved hello.jpg");
+
+// From URL with options
+var options = new HtmlConverterOptions
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            // From HTML string
-            var converter = new HtmlConverter();
-            var html = "<div><strong>Hello</strong> World!</div>";
-            var htmlBytes = converter.FromHtmlString(html);
+    Width = 800,
+    Format = ImageFormat.Png,
+    Quality = 90,
+    FullPage = true,
+    NavigationTimeout = 120000
+};
+var urlBytes = await converter.FromUrlAsync("https://google.com", options);
+File.WriteAllBytes("example.png", urlBytes);
+Console.WriteLine("Saved example.png");
 
-            // From URL
-            var urlBytes = converter.FromUrl("http://google.com", 800, format: ImageFormat.Png, quality: 90);
-            File.WriteAllBytes("D:\\image.png", urlBytes);
-        }
-    }
-}
+// Backward-compatible sync API still works
+var syncBytes = converter.FromHtmlString("<p>Sync API</p>", width: 640);
+File.WriteAllBytes("sync.jpg", syncBytes);
+Console.WriteLine("Saved sync.jpg");

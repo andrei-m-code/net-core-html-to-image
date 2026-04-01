@@ -1,25 +1,39 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
     <Title>.NET Core HTML to Image Converter</Title>
-    <Description>Convert HTML string or URL to image</Description>
+    <Description>Convert HTML strings or URLs to image bytes using headless Chromium. Cross-platform support for Windows, Linux, and macOS.</Description>
     <PackageProjectUrl>https://github.com/andrei-m-code/net-core-html-to-image</PackageProjectUrl>
     <RepositoryUrl>https://github.com/andrei-m-code/net-core-html-to-image</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>net-core html-to-image url-to-image net-standard</PackageTags>
-    <PackageReleaseNotes>Linux support added</PackageReleaseNotes>
+    <PackageTags>html-to-image url-to-image screenshot puppeteer chromium cross-platform dotnet</PackageTags>
+    <PackageReleaseNotes>v2.0.0: Replaced wkhtmltoimage with headless Chromium via PuppeteerSharp. Added async API, macOS support, WebP format, and options pattern.</PackageReleaseNotes>
     <Authors>andrei-m-code</Authors>
-    <Copyright>© Free for all. Screw the people who commercialize such libraries</Copyright>
-    <Version>1.0.6</Version>
-    <PackageVersion>1.0.6</PackageVersion>
+    <Copyright>MIT License</Copyright>
+    <Version>2.0.0</Version>
+    <PackageVersion>2.0.0</PackageVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="wkhtmltoimage.exe">
-      <IncludeInPackage>true</IncludeInPackage>
-    </EmbeddedResource>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.*" PrivateAssets="All" />
+    <PackageReference Include="PuppeteerSharp" Version="21.*" />
   </ItemGroup>
 
 </Project>

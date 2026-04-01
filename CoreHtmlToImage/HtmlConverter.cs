@@ -1,150 +1,207 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
+using PuppeteerSharp;
 
-namespace CoreHtmlToImage
+namespace CoreHtmlToImage;
+
+/// <summary>
+/// Converts HTML strings and URLs to image bytes using headless Chromium.
+/// Implements <see cref="IAsyncDisposable"/> for proper browser cleanup.
+/// </summary>
+public sealed class HtmlConverter : IAsyncDisposable, IDisposable
 {
+    private IBrowser? _browser;
+    private readonly SemaphoreSlim _browserLock = new(1, 1);
+    private bool _disposed;
+
     /// <summary>
-    /// Html Converter. Converts HTML string and URLs to image bytes
+    /// Converts an HTML string to image bytes.
     /// </summary>
-    public class HtmlConverter
+    /// <param name="html">HTML string to convert.</param>
+    /// <param name="options">Conversion options. Uses defaults if null.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Image bytes in the specified format.</returns>
+    public async Task<byte[]> FromHtmlStringAsync(string html, HtmlConverterOptions? options = null, CancellationToken cancellationToken = default)
     {
-        private static string toolFilename = "wkhtmltoimage";
-        private static string directory;
-        private static string toolFilepath;
+        ArgumentException.ThrowIfNullOrEmpty(html);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        static HtmlConverter()
+        options ??= new HtmlConverterOptions();
+
+        try
         {
-            directory = AppContext.BaseDirectory;
-
-            //Check on what platform we are
-            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            var browser = await GetBrowserAsync(cancellationToken).ConfigureAwait(false);
+            await using var page = await browser.NewPageAsync().ConfigureAwait(false);
+            await page.SetViewportAsync(new ViewPortOptions
             {
-                toolFilepath = Path.Combine(directory, toolFilename + ".exe");
-
-                if (!File.Exists(toolFilepath))
-                {
-                    var assembly = typeof(HtmlConverter).GetTypeInfo().Assembly;
-                    var type = typeof(HtmlConverter);
-                    var ns = type.Namespace;
-
-                    using (var resourceStream = assembly.GetManifestResourceStream($"{ns}.{toolFilename}.exe"))
-                    using (var fileStream = File.OpenWrite(toolFilepath))
-                    {
-                        resourceStream.CopyTo(fileStream);
-                    }
-                }
-            }
-            else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+                Width = options.Width,
+                Height = options.Height ?? 768
+            }).ConfigureAwait(false);
+            await page.SetContentAsync(html, new NavigationOptions
             {
-                //Check if wkhtmltoimage package is installed on this distro in using which command
-                Process process = Process.Start(new ProcessStartInfo()
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    WorkingDirectory = "/bin/",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    FileName = "/bin/bash",
-                    Arguments = "which wkhtmltoimage"
+                Timeout = options.NavigationTimeout,
+                WaitUntil = [WaitUntilNavigation.Networkidle0]
+            }).ConfigureAwait(false);
 
-                });
-                string answer = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
+            if (!options.OmitBackground)
+                await page.EvaluateExpressionAsync("document.body.style.backgroundColor = document.body.style.backgroundColor || 'white'").ConfigureAwait(false);
 
-                if (!string.IsNullOrEmpty(answer) && answer.Contains("wkhtmltoimage"))
-                {
-                    toolFilepath = "wkhtmltoimage";
-                }
-                else
-                {
-                    throw new Exception("wkhtmltoimage does not appear to be installed on this linux system according to which command; go to https://wkhtmltopdf.org/downloads.html");
-                }
-            }
-            else
+            return await CaptureScreenshotAsync(page, options).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not HtmlConversionException and not ArgumentException and not ObjectDisposedException)
+        {
+            throw new HtmlConversionException($"Failed to convert HTML string to image: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Converts a URL to image bytes.
+    /// </summary>
+    /// <param name="url">URL to capture.</param>
+    /// <param name="options">Conversion options. Uses defaults if null.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Image bytes in the specified format.</returns>
+    public async Task<byte[]> FromUrlAsync(string url, HtmlConverterOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(url);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        options ??= new HtmlConverterOptions();
+
+        try
+        {
+            var browser = await GetBrowserAsync(cancellationToken).ConfigureAwait(false);
+            await using var page = await browser.NewPageAsync().ConfigureAwait(false);
+            await page.SetViewportAsync(new ViewPortOptions
             {
-                //OSX not implemented
-                throw new Exception("OSX Platform not implemented yet");
+                Width = options.Width,
+                Height = options.Height ?? 768
+            }).ConfigureAwait(false);
+            await page.GoToAsync(url, new NavigationOptions
+            {
+                Timeout = options.NavigationTimeout,
+                WaitUntil = [WaitUntilNavigation.Networkidle0]
+            }).ConfigureAwait(false);
+
+            if (!options.OmitBackground)
+                await page.EvaluateExpressionAsync("document.body.style.backgroundColor = document.body.style.backgroundColor || 'white'").ConfigureAwait(false);
+
+            return await CaptureScreenshotAsync(page, options).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not HtmlConversionException and not ArgumentException and not ObjectDisposedException)
+        {
+            throw new HtmlConversionException($"Failed to convert URL '{url}' to image: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Converts an HTML string to image bytes (synchronous backward-compatible wrapper).
+    /// </summary>
+    public byte[] FromHtmlString(string html, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+    {
+        var options = new HtmlConverterOptions { Width = width, Format = format, Quality = quality };
+        return FromHtmlStringAsync(html, options).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Converts a URL to image bytes (synchronous backward-compatible wrapper).
+    /// </summary>
+    public byte[] FromUrl(string url, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+    {
+        var options = new HtmlConverterOptions { Width = width, Format = format, Quality = quality };
+        return FromUrlAsync(url, options).GetAwaiter().GetResult();
+    }
+
+    private async Task<IBrowser> GetBrowserAsync(CancellationToken cancellationToken)
+    {
+        if (_browser is { IsClosed: false })
+            return _browser;
+
+        await _browserLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (_browser is { IsClosed: false })
+                return _browser;
+
+            var browserFetcher = new BrowserFetcher();
+            await browserFetcher.DownloadAsync().ConfigureAwait(false);
+
+            _browser = await Puppeteer.LaunchAsync(new LaunchOptions
+            {
+                Headless = true,
+                Args = ["--no-sandbox", "--disable-setuid-sandbox"]
+            }).ConfigureAwait(false);
+
+            return _browser;
+        }
+        finally
+        {
+            _browserLock.Release();
+        }
+    }
+
+    private static async Task<byte[]> CaptureScreenshotAsync(IPage page, HtmlConverterOptions options)
+    {
+        var screenshotType = MapFormat(options.Format);
+
+        return await page.ScreenshotDataAsync(new ScreenshotOptions
+        {
+            Type = screenshotType,
+            Quality = screenshotType == ScreenshotType.Jpeg ? options.Quality : null,
+            FullPage = options.FullPage,
+            OmitBackground = options.OmitBackground
+        }).ConfigureAwait(false);
+    }
+
+    private static ScreenshotType MapFormat(ImageFormat format) => format switch
+    {
+        ImageFormat.Jpg => ScreenshotType.Jpeg,
+        ImageFormat.Png => ScreenshotType.Png,
+        ImageFormat.WebP => ScreenshotType.Webp,
+        _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unsupported image format.")
+    };
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        if (_browser is not null)
+        {
+            try
+            {
+                await _browser.CloseAsync().ConfigureAwait(false);
             }
+            catch
+            {
+                // Best-effort cleanup
+            }
+            _browser.Dispose();
+            _browser = null;
         }
 
-        /// <summary>
-        /// Converts HTML string to image
-        /// </summary>
-        /// <param name="html">HTML string</param>
-        /// <param name="width">Output document width</param>
-        /// <param name="format">Output image format</param>
-        /// <param name="quality">Output image quality 1-100</param>
-        /// <returns></returns>
-        public byte[] FromHtmlString(string html, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
+        _browserLock.Dispose();
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        if (_browser is not null)
         {
-            var filename = Path.Combine(directory, $"{Guid.NewGuid()}.html");
-            File.WriteAllText(filename, html);
-            var bytes = FromUrl(filename, width, format, quality);
-            File.Delete(filename);
-            return bytes;
+            try
+            {
+                _browser.CloseAsync().GetAwaiter().GetResult();
+            }
+            catch
+            {
+                // Best-effort cleanup
+            }
+            _browser.Dispose();
+            _browser = null;
         }
 
-        /// <summary>
-        /// Converts HTML page to image
-        /// </summary>
-        /// <param name="url">Valid http(s):// URL</param>
-        /// <param name="width">Output document width</param>
-        /// <param name="format">Output image format</param>
-        /// <param name="quality">Output image quality 1-100</param>
-        /// <returns></returns>
-        public byte[] FromUrl(string url, int width = 1024, ImageFormat format = ImageFormat.Jpg, int quality = 100)
-        {
-            var imageFormat = format.ToString().ToLower();
-            var filename = Path.Combine(directory, $"{Guid.NewGuid().ToString()}.{imageFormat}");
-
-            string args;
-
-            if (IsLocalPath(url))
-            {
-                args = $"--quality {quality} --width {width} -f {imageFormat} \"{url}\" \"{filename}\"";
-            }
-            else
-            {
-                args = $"--quality {quality} --width {width} -f {imageFormat} {url} \"{filename}\"";
-            }
-
-            Process process = Process.Start(new ProcessStartInfo(toolFilepath, args)
-            {
-                WindowStyle = ProcessWindowStyle.Hidden,
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                WorkingDirectory = directory,
-                RedirectStandardError = true
-            });
-
-            process.ErrorDataReceived += Process_ErrorDataReceived;
-            process.WaitForExit();
-
-            if (File.Exists(filename))
-            {
-                var bytes = File.ReadAllBytes(filename);
-                File.Delete(filename);
-                return bytes;
-            }
-
-            throw new Exception("Something went wrong. Please check input parameters");
-        }
-
-        private static bool IsLocalPath(string path)
-        {
-            if (path.StartsWith("http"))
-            {
-                return false;
-            }
-
-            return new Uri(path).IsFile;
-        }
-
-        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            throw new Exception(e.Data);
-        }
+        _browserLock.Dispose();
     }
 }
